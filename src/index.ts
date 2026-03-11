@@ -21,8 +21,8 @@ async function getAccessToken(): Promise<string> {
     return cachedToken;
   }
 
-  const clientId = process.env.SA_CLIENT_ID;
-  const clientSecret = process.env.SA_CLIENT_SECRET;
+  const clientId = 'martegeo';
+  const clientSecret = 'VJ.e35U~9M6£zQY';
 
   if (!clientId || !clientSecret) {
     throw new Error('SA_CLIENT_ID და SA_CLIENT_SECRET სავალდებულოა .env-ში');
