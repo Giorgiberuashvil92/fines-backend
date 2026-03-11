@@ -63,8 +63,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ყველა /api/v1/* პროქსირდება SA Public API-ზე
-app.all('/api/v1/*', async (req, res) => {
+/** SA-ზე proxy: იგივე method, path, query, body → იგივე status + body უკან */
+async function proxyToSa(
+  req: express.Request,
+  res: express.Response
+): Promise<void> {
   const path = req.path.replace(/^\/api\/v1/, '') || '/';
   const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
   const url = `${SA_PUBLIC_API_URL}${path}${query}`;
@@ -114,8 +117,24 @@ app.all('/api/v1/*', async (req, res) => {
         message: e instanceof Error ? e.message : String(e),
       });
   }
-});
+}
 
+// ——— სავალდებულო endpoint-ები (Railway marte-backend იძახებს) ———
+// 1. ჯარიმების სია
+app.get('/api/v1/patrolpenalties', proxyToSa);
+// 2. ჯარიმის მედია ფაილების ლინკები
+app.get('/api/v1/PatrolPenalties/PenaltyMediaFiles', proxyToSa);
+// 3. მანქანის რეგისტრაცია SA-ში
+app.post('/api/v1/patrolpenalties/vehicles', proxyToSa);
+// 4. მანქანის ვალიდაცია
+app.get('/api/v1/patrolpenalties/vehicles/validatevehicle', proxyToSa);
+// 5. აქტიური მანქანების სია
+app.get('/api/v1/patrolpenalties/vehicles/active', proxyToSa);
+
+// ნებისმიერი სხვა /api/v1/* ისევ SA-ზე
+app.all('/api/v1/*', proxyToSa);
+
+// Health (SA-ზე არ გადის)
 app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'marte-fines-backend' });
 });
